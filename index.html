@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cybersecurity Network Defence Game</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0a0f1f;
+color:white;
+text-align:center;
+}
+
+h1{
+color:#00ffcc;
+}
+
+#dashboard{
+display:flex;
+justify-content:center;
+gap:40px;
+margin:10px;
+font-size:18px;
+}
+
+button{
+padding:10px 20px;
+font-size:16px;
+cursor:pointer;
+margin:10px;
+background:#00ffcc;
+border:none;
+border-radius:6px;
+}
+
+#game{
+display:flex;
+justify-content:center;
+gap:60px;
+margin-top:20px;
+}
+
+.column{
+width:450px;
+}
+
+.card{
+background:#1b2a4a;
+padding:12px;
+margin:10px;
+border-radius:6px;
+cursor:grab;
+}
+
+.dropzone{
+background:#111a30;
+border:2px dashed #00ffcc;
+padding:15px;
+margin:10px;
+border-radius:6px;
+min-height:40px;
+}
+
+.correct{
+background:#0f3d2e !important;
+}
+
+.wrong{
+background:#5a1a1a !important;
+}
+
+.hidden{
+display:none;
+}
+
+table{
+margin:auto;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+td,th{
+border:1px solid white;
+padding:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Cybersecurity Defence Dashboard</h1>
+
+<!-- LOGIN -->
+
+<div id="login">
+
+<h2>Select Your Name</h2>
+
+<button onclick="login('Alice')">Alice</button>
+<button onclick="login('Bob')">Bob</button>
+<button onclick="login('Charlie')">Charlie</button>
+
+<h3>Or create username</h3>
+
+<input id="username" placeholder="Enter name">
+<button onclick="createUser()">Start Game</button>
+
+</div>
+
+
+<!-- DASHBOARD -->
+
+<div id="mainGame" class="hidden">
+
+<div id="dashboard">
+<div>Player: <span id="player"></span></div>
+<div>Level: <span id="level">1</span></div>
+<div>Score: <span id="score">0</span></div>
+<div>Timer: <span id="timer">120</span></div>
+</div>
+
+<button onclick="startGame()">PLAY</button>
+<button onclick="openAdmin()">Teacher Dashboard</button>
+
+<div id="game">
+
+<div class="column">
+<h2>Questions</h2>
+<div id="vulnerabilities"></div>
+</div>
+
+<div class="column">
+<h2>Answers</h2>
+<div id="countermeasures"></div>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ADMIN DASHBOARD -->
+
+<div id="admin" class="hidden">
+
+<h2>Teacher Dashboard</h2>
+
+<table>
+<thead>
+<tr>
+<th>Student</th>
+<th>Score</th>
+<th>Level</th>
+<th>Time</th>
+</tr>
+</thead>
+
+<tbody id="students"></tbody>
+</table>
+
+<button onclick="backGame()">Back</button>
+
+</div>
+
+
+<audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8c0c2a9f8c.mp3"></audio>
+<audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9c3c0c4c2b.mp3"></audio>
+
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+doc,
+setDoc,
+collection,
+onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyCPblfj_MaWnW_PPA1e-WTeUzcDqyInuEI",
+authDomain: "cybersecuritygame-68e77.firebaseapp.com",
+projectId: "cybersecuritygame-68e77",
+storageBucket: "cybersecuritygame-68e77.firebasestorage.app",
+messagingSenderId: "169000078818",
+appId: "1:169000078818:web:9ebe327883c395d488bdbb"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+let username=""
+let level=1
+let score=0
+let timer=120
+let gameActive=false
+let interval
+
+let results={}
+let totalQuestions=0
+let correctAnswers=0
+
+
+/* LOGIN */
+
+window.login=function(name){
+
+username=name
+startSession()
+
+}
+
+window.createUser=function(){
+
+username=document.getElementById("username").value
+
+if(username===""){
+alert("Enter name")
+return
+}
+
+startSession()
+
+}
+
+function startSession(){
+
+document.getElementById("login").classList.add("hidden")
+document.getElementById("mainGame").classList.remove("hidden")
+
+document.getElementById("player").innerText=username
+
+}
+
+
+/* SAVE PROGRESS */
+
+async function saveProgress(){
+
+await setDoc(doc(db,"students",username),{
+
+name:username,
+score:score,
+level:level,
+time:new Date().toISOString()
+
+})
+
+}
+
+
+/* LEVEL DATA */
+
+const level1={
+"What is a network vulnerability?":"A weakness in a network that attackers can exploit",
+"What does DDoS stand for?":"Distributed Denial of Service",
+"Why are insecure protocols dangerous?":"They allow attackers to intercept data"
+}
+
+const level2={
+"What is a Content Security Policy (CSP)?":"A rule controlling which resources a browser can load",
+"Why are complex passwords important?":"They are harder to crack"
+}
+
+const level3={
+"What is encryption?":"Converting data into coded form",
+"What is plaintext?":"Readable original data"
+}
+
+function getCurrentLevelData(){
+
+if(level===1) return level1
+if(level===2) return level2
+return level3
+
+}
+
+
+/* GAME FUNCTIONS (your original logic mostly unchanged) */
+
+function startGame(){
+
+document.getElementById("vulnerabilities").innerHTML=""
+document.getElementById("countermeasures").innerHTML=""
+
+results={}
+correctAnswers=0
+
+gameActive=true
+timer=120
+
+clearInterval(interval)
+
+interval=setInterval(()=>{
+timer--
+document.getElementById("timer").innerText=timer
+
+if(timer<=0){
+gameActive=false
+clearInterval(interval)
+alert("Time over!")
+saveProgress()
+}
+
+},1000)
+
+loadGame()
+
+}
+
+function loadGame(){
+
+let questions=getCurrentLevelData()
+
+let vulnContainer=document.getElementById("vulnerabilities")
+let counterContainer=document.getElementById("countermeasures")
+
+let qList=Object.keys(questions).sort(()=>Math.random()-0.5)
+
+qList.forEach(v=>{
+let card=document.createElement("div")
+card.className="card"
+card.innerText=v
+card.draggable=true
+card.addEventListener("dragstart",dragStart)
+vulnContainer.appendChild(card)
+})
+
+Object.values(questions).sort(()=>Math.random()-0.5).forEach(c=>{
+
+let drop=document.createElement("div")
+drop.className="dropzone"
+drop.innerText=c
+
+drop.addEventListener("dragover",e=>e.preventDefault())
+drop.addEventListener("drop",dropCard)
+
+counterContainer.appendChild(drop)
+
+})
+
+}
+
+let dragged
+
+function dragStart(e){
+dragged=e.target
+}
+
+function dropCard(e){
+
+if(!gameActive)return
+
+let dropzone=e.target
+let question=dragged.innerText
+let answers=getCurrentLevelData()
+
+if(dropzone.innerText===answers[question]){
+
+dropzone.classList.add("correct")
+dropzone.innerHTML+="<br>"+question
+
+dragged.remove()
+
+score+=10
+correctAnswers++
+
+document.getElementById("score").innerText=score
+
+document.getElementById("correctSound").play()
+
+checkLevel()
+
+}else{
+
+dropzone.classList.add("wrong")
+
+document.getElementById("wrongSound").play()
+
+setTimeout(()=>{
+dropzone.classList.remove("wrong")
+},500)
+
+}
+
+}
+
+function checkLevel(){
+
+let answers=getCurrentLevelData()
+totalQuestions=Object.keys(answers).length
+
+if(correctAnswers===totalQuestions){
+
+gameActive=false
+clearInterval(interval)
+
+saveProgress()
+
+alert("Level complete!")
+
+level++
+
+if(level>3){
+
+alert("All levels completed!")
+return
+
+}
+
+document.getElementById("level").innerText=level
+
+score=0
+document.getElementById("score").innerText=score
+
+startGame()
+
+}
+
+}
+
+
+/* ADMIN DASHBOARD */
+
+window.openAdmin=function(){
+
+document.getElementById("mainGame").classList.add("hidden")
+document.getElementById("admin").classList.remove("hidden")
+
+onSnapshot(collection(db,"students"),(snapshot)=>{
+
+const table=document.getElementById("students")
+
+table.innerHTML=""
+
+snapshot.forEach(doc=>{
+
+const d=doc.data()
+
+table.innerHTML+=`
+<tr>
+<td>${d.name}</td>
+<td>${d.score}</td>
+<td>${d.level}</td>
+<td>${d.time}</td>
+</tr>
+`
+
+})
+
+})
+
+}
+
+window.backGame=function(){
+
+document.getElementById("admin").classList.add("hidden")
+document.getElementById("mainGame").classList.remove("hidden")
+
+}
+
+</script>
+
+</body>
+</html>
