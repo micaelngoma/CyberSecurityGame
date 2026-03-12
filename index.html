@@ -11,18 +11,11 @@ font-family:Arial;
 background:#0a0f1f;
 color:white;
 text-align:center;
+margin:0;
 }
 
 h1{
 color:#00ffcc;
-}
-
-#dashboard{
-display:flex;
-justify-content:center;
-gap:40px;
-margin:10px;
-font-size:18px;
 }
 
 button{
@@ -33,6 +26,24 @@ margin:10px;
 background:#00ffcc;
 border:none;
 border-radius:6px;
+}
+
+#loginScreen{
+margin-top:80px;
+}
+
+select,input{
+padding:10px;
+font-size:16px;
+margin:10px;
+}
+
+#dashboard{
+display:flex;
+justify-content:center;
+gap:40px;
+margin:10px;
+font-size:18px;
 }
 
 #game{
@@ -71,19 +82,19 @@ background:#0f3d2e !important;
 background:#5a1a1a !important;
 }
 
-.hidden{
+#adminPanel{
 display:none;
+margin-top:40px;
 }
 
 table{
 margin:auto;
 border-collapse:collapse;
-margin-top:20px;
 }
 
 td,th{
 border:1px solid white;
-padding:10px;
+padding:8px 12px;
 }
 
 </style>
@@ -93,37 +104,48 @@ padding:10px;
 
 <h1>Cybersecurity Defence Dashboard</h1>
 
-<!-- LOGIN -->
+<!-- LOGIN SCREEN -->
 
-<div id="login">
+<div id="loginScreen">
 
 <h2>Select Your Name</h2>
 
-<button onclick="login('Alice')">Alice</button>
-<button onclick="login('Bob')">Bob</button>
-<button onclick="login('Charlie')">Charlie</button>
+<select id="studentName">
+<option value="">Choose Student</option>
+<option>Alice</option>
+<option>Bob</option>
+<option>Charlie</option>
+</select>
 
-<h3>Or create username</h3>
+<br>
 
-<input id="username" placeholder="Enter name">
-<button onclick="createUser()">Start Game</button>
+<button onclick="studentLogin()">Start Game</button>
+
+<hr style="width:300px">
+
+<h3>Teacher Login</h3>
+
+<input type="password" id="teacherPass" placeholder="Teacher Password">
+
+<br>
+
+<button onclick="teacherLogin()">Admin Login</button>
 
 </div>
 
 
-<!-- DASHBOARD -->
+<!-- GAME AREA -->
 
-<div id="mainGame" class="hidden">
+<div id="gameArea" style="display:none">
 
 <div id="dashboard">
-<div>Player: <span id="player"></span></div>
+<div>Student: <span id="playerName"></span></div>
 <div>Level: <span id="level">1</span></div>
 <div>Score: <span id="score">0</span></div>
 <div>Timer: <span id="timer">120</span></div>
 </div>
 
 <button onclick="startGame()">PLAY</button>
-<button onclick="openAdmin()">Teacher Dashboard</button>
 
 <div id="game">
 
@@ -142,26 +164,17 @@ padding:10px;
 </div>
 
 
-<!-- ADMIN DASHBOARD -->
+<!-- ADMIN PANEL -->
 
-<div id="admin" class="hidden">
+<div id="adminPanel">
 
 <h2>Teacher Dashboard</h2>
 
-<table>
-<thead>
-<tr>
-<th>Student</th>
-<th>Score</th>
-<th>Level</th>
-<th>Time</th>
-</tr>
-</thead>
+<button onclick="loadResults()">View Student Progress</button>
 
-<tbody id="students"></tbody>
-</table>
+<button onclick="clearResults()">Reset Results</button>
 
-<button onclick="backGame()">Back</button>
+<div id="results"></div>
 
 </div>
 
@@ -169,35 +182,47 @@ padding:10px;
 <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8c0c2a9f8c.mp3"></audio>
 <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9c3c0c4c2b.mp3"></audio>
 
+<script>
 
-<script type="module">
+let currentStudent=""
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+function studentLogin(){
 
-import {
-getFirestore,
-doc,
-setDoc,
-collection,
-onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+let name=document.getElementById("studentName").value
 
-const firebaseConfig = {
+if(name===""){
+alert("Please choose your name")
+return
+}
 
-apiKey: "AIzaSyCPblfj_MaWnW_PPA1e-WTeUzcDqyInuEI",
-authDomain: "cybersecuritygame-68e77.firebaseapp.com",
-projectId: "cybersecuritygame-68e77",
-storageBucket: "cybersecuritygame-68e77.firebasestorage.app",
-messagingSenderId: "169000078818",
-appId: "1:169000078818:web:9ebe327883c395d488bdbb"
+currentStudent=name
 
-};
+document.getElementById("playerName").innerText=name
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+document.getElementById("loginScreen").style.display="none"
+document.getElementById("gameArea").style.display="block"
 
+}
 
-let username=""
+function teacherLogin(){
+
+let pass=document.getElementById("teacherPass").value
+
+if(pass==="teacher123"){
+
+document.getElementById("loginScreen").style.display="none"
+document.getElementById("adminPanel").style.display="block"
+
+}else{
+
+alert("Wrong password")
+
+}
+
+}
+
+/* GAME VARIABLES */
+
 let level=1
 let score=0
 let timer=120
@@ -209,70 +234,27 @@ let totalQuestions=0
 let correctAnswers=0
 
 
-/* LOGIN */
-
-window.login=function(name){
-
-username=name
-startSession()
-
-}
-
-window.createUser=function(){
-
-username=document.getElementById("username").value
-
-if(username===""){
-alert("Enter name")
-return
-}
-
-startSession()
-
-}
-
-function startSession(){
-
-document.getElementById("login").classList.add("hidden")
-document.getElementById("mainGame").classList.remove("hidden")
-
-document.getElementById("player").innerText=username
-
-}
-
-
-/* SAVE PROGRESS */
-
-async function saveProgress(){
-
-await setDoc(doc(db,"students",username),{
-
-name:username,
-score:score,
-level:level,
-time:new Date().toISOString()
-
-})
-
-}
-
-
 /* LEVEL DATA */
 
 const level1={
-"What is a network vulnerability?":"A weakness in a network that attackers can exploit",
-"What does DDoS stand for?":"Distributed Denial of Service",
-"Why are insecure protocols dangerous?":"They allow attackers to intercept data"
+"What is malware?":"Malicious software designed to damage or access systems",
+"What is phishing?":"An attack to steal sensitive information",
+"What is weak authentication?":"Security that is easy to bypass",
+"What is SQL injection?":"An attack targeting databases"
 }
 
 const level2={
-"What is a Content Security Policy (CSP)?":"A rule controlling which resources a browser can load",
-"Why are complex passwords important?":"They are harder to crack"
+"What does HTTPS do?":"Protects data in transit",
+"What is an IDS?":"System detecting suspicious activity",
+"What is input validation?":"Checking user data for malicious input",
+"What is MFA?":"Multiple verification methods"
 }
 
 const level3={
 "What is encryption?":"Converting data into coded form",
-"What is plaintext?":"Readable original data"
+"What is plaintext?":"Readable original data",
+"What is ciphertext?":"Encrypted scrambled data",
+"What is a public key?":"Key used to encrypt data"
 }
 
 function getCurrentLevelData(){
@@ -282,9 +264,6 @@ if(level===2) return level2
 return level3
 
 }
-
-
-/* GAME FUNCTIONS (your original logic mostly unchanged) */
 
 function startGame(){
 
@@ -306,8 +285,7 @@ document.getElementById("timer").innerText=timer
 if(timer<=0){
 gameActive=false
 clearInterval(interval)
-alert("Time over!")
-saveProgress()
+alert("Time over")
 }
 
 },1000)
@@ -326,12 +304,15 @@ let counterContainer=document.getElementById("countermeasures")
 let qList=Object.keys(questions).sort(()=>Math.random()-0.5)
 
 qList.forEach(v=>{
+
 let card=document.createElement("div")
 card.className="card"
 card.innerText=v
 card.draggable=true
 card.addEventListener("dragstart",dragStart)
+
 vulnContainer.appendChild(card)
+
 })
 
 Object.values(questions).sort(()=>Math.random()-0.5).forEach(c=>{
@@ -374,10 +355,7 @@ score+=10
 correctAnswers++
 
 document.getElementById("score").innerText=score
-
 document.getElementById("correctSound").play()
-
-checkLevel()
 
 }else{
 
@@ -391,6 +369,8 @@ dropzone.classList.remove("wrong")
 
 }
 
+checkLevel()
+
 }
 
 function checkLevel(){
@@ -400,26 +380,21 @@ totalQuestions=Object.keys(answers).length
 
 if(correctAnswers===totalQuestions){
 
-gameActive=false
-clearInterval(interval)
-
 saveProgress()
 
-alert("Level complete!")
+gameActive=false
+clearInterval(interval)
 
 level++
 
 if(level>3){
 
-alert("All levels completed!")
+alert("Game completed!")
 return
 
 }
 
 document.getElementById("level").innerText=level
-
-score=0
-document.getElementById("score").innerText=score
 
 startGame()
 
@@ -427,43 +402,51 @@ startGame()
 
 }
 
+/* SAVE STUDENT PROGRESS */
 
-/* ADMIN DASHBOARD */
+function saveProgress(){
 
-window.openAdmin=function(){
+let data=JSON.parse(localStorage.getItem("cyberGameResults") || "{}")
 
-document.getElementById("mainGame").classList.add("hidden")
-document.getElementById("admin").classList.remove("hidden")
+data[currentStudent]={
+level:level,
+score:score
+}
 
-onSnapshot(collection(db,"students"),(snapshot)=>{
-
-const table=document.getElementById("students")
-
-table.innerHTML=""
-
-snapshot.forEach(doc=>{
-
-const d=doc.data()
-
-table.innerHTML+=`
-<tr>
-<td>${d.name}</td>
-<td>${d.score}</td>
-<td>${d.level}</td>
-<td>${d.time}</td>
-</tr>
-`
-
-})
-
-})
+localStorage.setItem("cyberGameResults",JSON.stringify(data))
 
 }
 
-window.backGame=function(){
 
-document.getElementById("admin").classList.add("hidden")
-document.getElementById("mainGame").classList.remove("hidden")
+/* ADMIN PANEL */
+
+function loadResults(){
+
+let data=JSON.parse(localStorage.getItem("cyberGameResults") || "{}")
+
+let html="<table><tr><th>Student</th><th>Level</th><th>Score</th></tr>"
+
+for(let student in data){
+
+html+=`<tr>
+<td>${student}</td>
+<td>${data[student].level}</td>
+<td>${data[student].score}</td>
+</tr>`
+
+}
+
+html+="</table>"
+
+document.getElementById("results").innerHTML=html
+
+}
+
+function clearResults(){
+
+localStorage.removeItem("cyberGameResults")
+
+alert("Results cleared")
 
 }
 
