@@ -1,8 +1,10 @@
 // firebase.js
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCPblfj_MaWnW_PPA1e-WTeUzcDqyInuEI",
   authDomain: "cybersecuritygame-68e77.firebaseapp.com",
@@ -12,8 +14,11 @@ const firebaseConfig = {
   appId: "1:169000078818:web:9ebe327883c395d488bdbb"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
+// Initialize Firestore database
 const db = getFirestore(app);
 
+// Export database so other files can use it
 export { db };
