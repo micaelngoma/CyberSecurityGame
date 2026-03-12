@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Teacher Dashboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#111;
+color:white;
+text-align:center;
+padding-top:60px;
+}
+
+table{
+margin:auto;
+border-collapse:collapse;
+}
+
+td,th{
+border:1px solid white;
+padding:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Cybersecurity Game Dashboard</h1>
+
+<table>
+
+<thead>
+<tr>
+<th>Student</th>
+<th>Score</th>
+<th>Level</th>
+<th>Last Played</th>
+</tr>
+</thead>
+
+<tbody id="students"></tbody>
+
+</table>
+
+<script type="module">
+
+import { db } from "./firebase.js";
+
+import {
+collection,
+onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const table=document.getElementById("students")
+
+onSnapshot(collection(db,"students"),(snapshot)=>{
+
+table.innerHTML=""
+
+snapshot.forEach(doc=>{
+
+const d=doc.data()
+
+table.innerHTML+=`
+<tr>
+<td>${d.name}</td>
+<td>${d.score}</td>
+<td>${d.level}</td>
+<td>${d.lastPlayed}</td>
+</tr>
+`
+
+})
+
+})
+
+</script>
+
+</body>
+</html>
