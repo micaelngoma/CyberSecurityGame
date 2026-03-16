@@ -8,86 +8,86 @@
 
 <h2>CyberSecurity Game Login</h2>
 
-<input id="email" type="email" placeholder="Email">
+<input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
 
 <br><br>
 
+<button onclick="register()">Register Student</button>
 <button onclick="login()">Login</button>
-<button onclick="register()">Register</button>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { auth, db } from "./firebase.js";
 
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword }
-
+import {
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword
+}
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import { getFirestore, doc, setDoc, getDoc }
-
+import {
+doc,
+setDoc,
+getDoc
+}
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
 
-apiKey: "AIzaSyCPblfj_MaWnW_PPA1e-WTeUzcDqyInuEI",
-authDomain: "cybersecuritygame-68e77.firebaseapp.com",
-projectId: "cybersecuritygame-68e77",
-storageBucket: "cybersecuritygame-68e77.firebasestorage.app",
-messagingSenderId: "169000078818",
-appId: "1:169000078818:web:9ebe327883c395d488bdbb"
+async function register(){
 
-};
+const email=document.getElementById("email").value;
+const password=document.getElementById("password").value;
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-window.register = async function(){
-
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
-
-const userCredential =
+const userCredential=
 await createUserWithEmailAndPassword(auth,email,password);
 
-await setDoc(doc(db,"users",userCredential.user.uid),{
+const uid=userCredential.user.uid;
 
-email: email,
-role: "student",
-progress: {}
+await setDoc(doc(db,"users",uid),{
+
+email:email,
+role:"student",
+
+progress:{
+level1:false,
+level2:false
+}
 
 });
 
-alert("Student registered");
+alert("Student created");
 
 }
 
-window.login = async function(){
+async function login(){
 
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+const email=document.getElementById("email").value;
+const password=document.getElementById("password").value;
 
-const userCredential =
+const userCredential=
 await signInWithEmailAndPassword(auth,email,password);
 
-const uid = userCredential.user.uid;
+const uid=userCredential.user.uid;
 
-const userDoc = await getDoc(doc(db,"users",uid));
+const userDoc=await getDoc(doc(db,"users",uid));
 
-const role = userDoc.data().role;
+const role=userDoc.data().role;
 
-if(role === "teacher"){
+if(role==="teacher"){
 
-window.location.href="teacher.html";
+window.location="teacher.html";
 
 }else{
 
-window.location.href="student.html";
+window.location="student.html";
 
 }
 
 }
+
+window.register=register;
+window.login=login;
 
 </script>
 
