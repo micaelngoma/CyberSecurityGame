@@ -6,56 +6,47 @@
 
 <body>
 
-<h1>CyberSecurity Game - Student</h1>
+<h1>Student Dashboard</h1>
 
-<button onclick="startLevel('level1')">Start Level 1</button>
-<button onclick="startLevel('level2')">Start Level 2</button>
+<button onclick="playLevel('level1')">Play Level 1</button>
+<button onclick="playLevel('level2')">Play Level 2</button>
 
-<br><br>
-
-<div id="status"></div>
+<p id="status"></p>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { auth, db } from "./firebase.js";
 
-import { getAuth }
-
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import { getFirestore, doc, updateDoc }
-
+import {
+doc,
+updateDoc
+}
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
 
-apiKey: "AIzaSyCPblfj_MaWnW_PPA1e-WTeUzcDqyInuEI",
-authDomain: "cybersecuritygame-68e77.firebaseapp.com",
-projectId: "cybersecuritygame-68e77",
-storageBucket: "cybersecuritygame-68e77.firebasestorage.app",
-messagingSenderId: "169000078818",
-appId: "1:169000078818:web:9ebe327883c395d488bdbb"
+function playLevel(level){
 
-};
+window.location="game.html?level="+level;
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+}
 
-window.startLevel = async function(level){
+async function completeLevel(level){
 
-const user = auth.currentUser;
+const uid=auth.currentUser.uid;
 
-await updateDoc(doc(db,"users",user.uid),{
+await updateDoc(doc(db,"users",uid),{
 
-["progress."+level]: true
+["progress."+level]:true
 
 });
 
-document.getElementById("status").innerHTML =
+document.getElementById("status").innerText=
 "Completed "+level;
 
 }
+
+window.playLevel=playLevel;
+window.completeLevel=completeLevel;
 
 </script>
 
