@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Setup Game Levels</title>
+</head>
+
+<body>
+
+<h2>Initialize Game Levels</h2>
+
+<button onclick="createLevels()">Create Levels in Firestore</button>
+
+<p id="status"></p>
+
+<script type="module">
+
+import { db } from "./firebase.js";
+
+import { doc, setDoc }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+async function createLevels(){
+
+await setDoc(doc(db,"levels","level1"),{
+
+question:"What is phishing?",
+
+answers:[
+"Fake email scam",
+"Network hardware",
+"Firewall type",
+"Encryption method"
+],
+
+correct:0
+
+});
+
+await setDoc(doc(db,"levels","level2"),{
+
+question:"What does a firewall do?",
+
+answers:[
+"Encrypt data",
+"Filter network traffic",
+"Store passwords",
+"Scan viruses"
+],
+
+correct:1
+
+});
+
+document.getElementById("status").innerText =
+"Levels successfully created in Firestore";
+
+}
+
+window.createLevels = createLevels;
+
+</script>
+
+</body>
+</html>
