@@ -1,8 +1,12 @@
-// firebase.js
-
+// Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
 
 // Firebase configuration
 const firebaseConfig = {
@@ -14,11 +18,16 @@ const firebaseConfig = {
   appId: "1:169000078818:web:9ebe327883c395d488bdbb"
 };
 
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore database
-const db = getFirestore(app);
 
-// Export database so other files can use it
-export { db };
+// Initialize services
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+
+// Export services so other scripts can use them
+export { app, auth, db, storage };
