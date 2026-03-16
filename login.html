@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CyberSecurity Game Login</title>
+</head>
+
+<body>
+
+<h2>CyberSecurity Game Login</h2>
+
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<br><br>
+
+<button onclick="login()">Login</button>
+<button onclick="register()">Register</button>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword }
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { getFirestore, doc, setDoc, getDoc }
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyCPblfj_MaWnW_PPA1e-WTeUzcDqyInuEI",
+authDomain: "cybersecuritygame-68e77.firebaseapp.com",
+projectId: "cybersecuritygame-68e77",
+storageBucket: "cybersecuritygame-68e77.firebasestorage.app",
+messagingSenderId: "169000078818",
+appId: "1:169000078818:web:9ebe327883c395d488bdbb"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.register = async function(){
+
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
+
+const userCredential =
+await createUserWithEmailAndPassword(auth,email,password);
+
+await setDoc(doc(db,"users",userCredential.user.uid),{
+
+email: email,
+role: "student",
+progress: {}
+
+});
+
+alert("Student registered");
+
+}
+
+window.login = async function(){
+
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
+
+const userCredential =
+await signInWithEmailAndPassword(auth,email,password);
+
+const uid = userCredential.user.uid;
+
+const userDoc = await getDoc(doc(db,"users",uid));
+
+const role = userDoc.data().role;
+
+if(role === "teacher"){
+
+window.location.href="teacher.html";
+
+}else{
+
+window.location.href="student.html";
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
