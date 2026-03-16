@@ -14,49 +14,43 @@
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { db } from "./firebase.js";
 
-import { getFirestore, collection, getDocs }
-
+import {
+collection,
+getDocs
+}
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
+async function loadStudents(){
 
-apiKey: "AIzaSyCPblfj_MaWnW_PPA1e-WTeUzcDqyInuEI",
-authDomain: "cybersecuritygame-68e77.firebaseapp.com",
-projectId: "cybersecuritygame-68e77",
-storageBucket: "cybersecuritygame-68e77.firebasestorage.app",
-messagingSenderId: "169000078818",
-appId: "1:169000078818:web:9ebe327883cdbb"
-
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.loadStudents = async function(){
-
-const querySnapshot = await getDocs(collection(db,"users"));
+const snapshot=await getDocs(collection(db,"users"));
 
 let html="";
 
-querySnapshot.forEach((doc)=>{
+snapshot.forEach(doc=>{
 
-const data = doc.data();
+const data=doc.data();
 
-if(data.role === "student"){
+if(data.role==="student"){
 
-html +=
-"<p><b>"+data.email+"</b><br>Progress: "+
-JSON.stringify(data.progress)+"</p>";
+html+=`
+<p>
+<b>${data.email}</b><br>
+Progress: ${JSON.stringify(data.progress)}
+</p>
+<hr>
+`;
 
 }
 
 });
 
-document.getElementById("students").innerHTML = html;
+document.getElementById("students").innerHTML=html;
 
 }
+
+window.loadStudents=loadStudents;
 
 </script>
 
