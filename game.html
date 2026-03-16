@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CyberSecurity Game</title>
+</head>
+
+<body>
+
+<h2 id="question"></h2>
+
+<div id="answers"></div>
+
+<p id="result"></p>
+
+<script type="module">
+
+import { auth, db } from "./firebase.js";
+
+import {
+doc,
+getDoc,
+updateDoc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+const params=new URLSearchParams(window.location.search);
+
+const level=params.get("level");
+
+loadLevel(level);
+
+async function loadLevel(level){
+
+const levelDoc=await getDoc(doc(db,"levels",level));
+
+const data=levelDoc.data();
+
+document.getElementById("question").innerText=data.question;
+
+let html="";
+
+data.answers.forEach((answer,index)=>{
+
+html+=`<button onclick="check(${index})">${answer}</button><br><br>`;
+
+});
+
+document.getElementById("answers").innerHTML=html;
+
+window.correct=data.correct;
+
+}
+
+async function check(choice){
+
+if(choice===window.correct){
+
+document.getElementById("result").innerText="Correct!";
+
+const uid=auth.currentUser.uid;
+
+await updateDoc(doc(db,"users",uid),{
+
+["progress."+level]:true
+
+});
+
+}else{
+
+document.getElementById("result").innerText="Wrong answer";
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
