@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Dashboard</title>
+</head>
+
+<body>
+
+<h1>CyberSecurity Game - Student</h1>
+
+<button onclick="startLevel('level1')">Start Level 1</button>
+<button onclick="startLevel('level2')">Start Level 2</button>
+
+<br><br>
+
+<div id="status"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import { getAuth }
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { getFirestore, doc, updateDoc }
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyCPblfj_MaWnW_PPA1e-WTeUzcDqyInuEI",
+authDomain: "cybersecuritygame-68e77.firebaseapp.com",
+projectId: "cybersecuritygame-68e77",
+storageBucket: "cybersecuritygame-68e77.firebasestorage.app",
+messagingSenderId: "169000078818",
+appId: "1:169000078818:web:9ebe327883c395d488bdbb"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.startLevel = async function(level){
+
+const user = auth.currentUser;
+
+await updateDoc(doc(db,"users",user.uid),{
+
+["progress."+level]: true
+
+});
+
+document.getElementById("status").innerHTML =
+"Completed "+level;
+
+}
+
+</script>
+
+</body>
+</html>
